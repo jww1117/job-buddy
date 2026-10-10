@@ -332,6 +332,21 @@ async function applyAndBook(ctx, s, r) {
   return iv;
 }
 
+// Ways to find more suitable jobs, each simulated first: jobs = what it would add.
+// cost: how much of what they asked for an option gives up. Anything they stated themselves
+// (their pay floor, a walking limit they named) is never dropped without their word (yours: true).
+function seekerOptions(s, opts, walkStated) {
+  const now = new Set(matchJobs(s, opts).filter(r => r.suitable && !r.applied).map(r => r.jobId));
+  const gain = o => matchJobs(s, { ...opts, ...o }).filter(r => r.suitable && !r.applied && !now.has(r.jobId));
+  const options = [];
+  if (s.needs?.screenReader && !opts.askAboutTech) options.push({ id: 'ask_about_screen_reader', label: 'Include jobs that don\'t mention screen reader support, and ask the employer in the application', change: { askAboutTech: true }, cost: 0 });
+  if (opts.maxDistanceKm < 60) options.push({ id: 'whole_klang_valley', label: 'Search the whole Klang Valley, not just 25 km', change: { maxDistanceKm: 60 }, cost: 1 });
+  if (s.needs && !s.needs.remoteOnly && (opts.maxWalkMin || L.DEFAULT_WALK) < 15) options.push({ id: 'walk_15_minutes', label: `Accept up to a 15-minute walk from the stop (now ${opts.maxWalkMin || L.DEFAULT_WALK})`, change: { maxWalkMin: 15 }, cost: 2, yours: !!walkStated });
+  if (opts.minPay > L.MIN_WAGE.hour) options.push({ id: 'lower_pay_floor', label: `Lower your minimum pay from RM${opts.minPay}/h to the legal minimum RM${L.MIN_WAGE.hour}/h`, change: { minPay: 0 }, cost: 3, yours: true });
+  for (const o of options) o.jobs = gain(o.change);
+  return options;
+}
+
 async function autopilotStudent(ctx) {
   if (ctx.run.options?.rescheduleInterviewId) return autopilotReschedule(ctx);
   const p = parse.student(ctx.run.prompt);
@@ -380,16 +395,7 @@ async function autopilotStudent(ctx) {
     if (booked.length >= goal) break;
 
     // Short of the goal: simulate each change and pick the one that adds the most suitable jobs.
-    const now = new Set(matchJobs(s, opts).filter(r => r.suitable && !r.applied).map(r => r.jobId));
-    const gain = o => matchJobs(s, { ...opts, ...o }).filter(r => r.suitable && !r.applied && !now.has(r.jobId));
-    // cost: how much of what they asked for an option gives up. Anything they stated themselves
-    // (their pay floor, a walking limit they named) is never dropped without their word.
-    const options = [];
-    if (s.needs?.screenReader && !opts.askAboutTech) options.push({ label: 'Include jobs that don\'t mention screen reader support, and ask the employer in the application', change: { askAboutTech: true }, cost: 0 });
-    if (opts.maxDistanceKm < 60) options.push({ label: 'Search the whole Klang Valley, not just 25 km', change: { maxDistanceKm: 60 }, cost: 1 });
-    if (s.needs && !s.needs.remoteOnly && (opts.maxWalkMin || L.DEFAULT_WALK) < 15) options.push({ label: `Accept up to a 15-minute walk from the stop (now ${opts.maxWalkMin || L.DEFAULT_WALK})`, change: { maxWalkMin: 15 }, cost: 2, yours: !!p.needs?.walkStated });
-    if (opts.minPay > L.MIN_WAGE.hour) options.push({ label: `Lower your minimum pay from RM${opts.minPay}/h to the legal minimum RM${L.MIN_WAGE.hour}/h`, change: { minPay: 0 }, cost: 3, yours: true });
-    for (const o of options) o.jobs = gain(o.change);
+    const options = seekerOptions(s, opts, !!p.needs?.walkStated);
     const best = options.filter(o => o.jobs.length && !o.yours).sort((a, b) => a.cost - b.cost)[0];
     const askYou = options.filter(o => o.jobs.length && o.yours);
     if (!best && askYou.length) ctx.run.suggestions = askYou.map(o => `${o.label.replace(/^Lower your/, 'If you lower your').replace(/^Accept/, 'If you accept')}, I could apply to ${o.jobs.map(r => `${r.title} at ${r.business} (${r.pay})`).join(' and ')}. Tell me and I will.`);
@@ -624,4 +630,5 @@ function replanAfterDecline(iv, baseUrl) {
   return run;
 }
 
-module.exports = { newRun, execute, bus, live, detectPersona, links, replanAfterDecline, rescheduleAfterDecline };
+module.exports = { newRun, execute, bus, live, detectPersona, links, replanAfterDecline, rescheduleAfterDecline,
+  makeCtx, callTool, say, applyAndBook, seekerOptions, decisionSummary, SEEKER_GOAL };

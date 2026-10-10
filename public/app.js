@@ -265,7 +265,7 @@ function showResult(e, live) {
   const rest = lines.slice(1).filter(l => !/^\d+\. /.test(l) || !booked.length);
   $('#result-body').innerHTML = `<p><span class="status-word ${e.verified && !refused ? 'good' : 'bad'}">${refused ? 'Refused: pay is below the legal minimum' : e.verified ? 'Checked and verified' : ok ? 'Done' : 'Needs attention'}</span></p>
     <p class="lede">${linkify(esc(head))}</p>${interviews}${others}${rest.map(l => `<p>${linkify(esc(l))}</p>`).join('')}
-    ${(outcome.decisions || []).length ? `<h3>Decisions HireBuddy made</h3><ul>${outcome.decisions.map(d => `<li><b>${esc(d.choice)}.</b> ${esc(d.reason)}</li>`).join('')}</ul>` : ''}
+    ${(outcome.decisions || []).length ? `<h3>Decisions made on the way</h3><ul>${outcome.decisions.map(d => `<li><b>${esc(d.choice)}.</b> ${esc(d.reason)}</li>`).join('')}</ul>` : ''}
     <p class="actions"><button type="button" class="secondary" id="read-aloud">Read aloud</button>${(e.links || []).filter(l => !l.label.startsWith('Calendar invite')).map(l => `<a class="btn secondary" href="${esc(l.url)}">${esc(l.label)}</a>`).join('')}</p>`;
   $('#read-aloud').onclick = ev => window.HB.speak((e.summary || '').replace(/https?:\/\/\S+/g, 'the link'), ev.currentTarget);
   if (!('speechSynthesis' in window)) $('#read-aloud').remove();

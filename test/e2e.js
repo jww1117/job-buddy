@@ -86,6 +86,31 @@ const cases = [
     && o.results[3].verdict === 'worth asking' && /What is the pay\?/.test(o.results[3].draft) && /working hours/.test(o.results[3].draft) && /nothing was sent/.test(ro.summary) && emailsBefore === 0;
   if (!outOk) fail++;
   console.log(`${outOk ? 'PASS' : 'FAIL'} other-site listings: ${ro.summary.slice(ro.summary.indexOf('I also checked'))}`);
+  // WorkBuddy-led: the client calls the four steps itself, following `next`, and widens the search once.
+  const mcpCall = async (name, args) => JSON.parse((await fetch(`${base}/mcp`, { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 9, method: 'tools/call', params: { name, arguments: args } }) }).then(r => r.json())).result.content[0].text);
+  let st = await mcpCall('hirebuddy_1_understand', { prompt: NADIA.replace('Nadia Rahim', 'Nadia Rahman'), listings: found.slice(3) });
+  const runId = st.runId, trail = ['1'];
+  for (let i = 0; i < 8 && st.next; i++) {
+    const tool = (st.next.match(/hirebuddy_\w+/) || [])[0];
+    if (!tool) break;
+    const args = { runId };
+    if (tool === 'hirebuddy_3_apply_and_book') args.jobIds = JSON.parse(st.next.match(/jobIds (\[.*?\])/)[1]);
+    const ch = st.next.match(/change "(\w+)"/) || st.next.match(/Suggested: (\w+)/);
+    if (tool === 'hirebuddy_2_check_jobs' && ch) Object.assign(args, { change: ch[1], reason: 'adds a job without giving up a stated need' });
+    st = await mcpCall(tool, args);
+    trail.push(tool.match(/_(\d)_/)[1] + (args.change ? '+' : ''));
+    if (tool === 'hirebuddy_4_verify') break;
+  }
+  const stepsOk = st.verified && /You have 3 interviews/.test(st.summary) && trail.includes('2+') && st.saveToComputer.files.some(f => /\.ics$/.test(f.path) && /BEGIN:VCALENDAR/.test(f.content))
+    && st.saveToComputer.files.some(f => /Application/.test(f.path));
+  if (!stepsOk) fail++;
+  console.log(`${stepsOk ? 'PASS' : 'FAIL'} WorkBuddy-led steps (${trail.join(' > ')}): ${(st.summary || st.problem || '').split('\n')[0]} ${st.selfChecks?.length} checks`);
+  // Refusing an option that gives up a stated need (her pay floor).
+  const no = await mcpCall('hirebuddy_2_check_jobs', { runId, change: 'lower_pay_floor', reason: 'more jobs' });
+  const noOk = no.ok === false && /only they can choose/.test(no.problem);
+  if (!noOk) fail++;
+  console.log(`${noOk ? 'PASS' : 'FAIL'} step tools refuse to lower her pay floor: ${no.problem}`);
   const mcp = await fetch(`${base}/mcp`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }) }).then(r => r.json());
   const mcpOk = mcp.result.tools.some(t => t.name === 'hirebuddy_run');
   if (!mcpOk) fail++;

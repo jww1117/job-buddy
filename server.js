@@ -133,7 +133,7 @@ async function route(req, res) {
   }
 
   // ---- API ----
-  if (p === '/robots.txt') { res.writeHead(200, { 'content-type': 'text/plain' }); return res.end('User-agent: *\nAllow: /\n'); }
+  if (p === '/robots.txt') { res.writeHead(200, { 'content-type': 'text/plain' }); return res.end('User-agent: *\nAllow: /\nDisallow: /reset\n'); }
   if (p === '/health') return json(res, 200, { ok: true, mode: llm.enabled() ? `llm:${llm.MODEL}` : 'autopilot', jobs: store.db.jobs.length, students: store.db.students.length });
   if (p === '/api/config') return json(res, 200, { llm: llm.enabled(), model: llm.enabled() ? llm.MODEL : null, email: !!process.env.RESEND_API_KEY });
 
@@ -251,6 +251,21 @@ async function route(req, res) {
     return json(res, 200, { ok: true, status: iv.status, runId: run.id, url: `${base}/runs/${run.id}` });
   }
   if (p === '/api/emails') return json(res, 200, store.db.emails.slice(-100).reverse());
+  // Before a demo: one button puts the demo data back to the start (fresh jobs, no applications or runs).
+  if (p === '/reset') {
+    const token = process.env.RESET_TOKEN;
+    let msg = '';
+    if (req.method === 'POST') {
+      const form = new URLSearchParams(await readBody(req));
+      if (token && form.get('token') !== token) msg = '<p class="panel bad" role="alert" tabindex="-1" id="msg">Wrong reset code. Nothing was changed.</p>';
+      else { store.reset(); msg = `<p class="panel good" role="status" tabindex="-1" id="msg">Done. The demo data is back to the start: ${store.db.jobs.length} open jobs, no applications, no interviews.</p>`; }
+    }
+    res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'x-robots-tag': 'noindex' });
+    return res.end(page('Reset the demo', `<h1>Reset the demo</h1>${msg}
+      <p>This removes every application, interview, email and agent run, and puts the demo jobs and people back to the start. Use it just before a demo so the run starts fresh.</p>
+      <form method="post" action="/reset">${token ? '<label for="token">Reset code</label><input type="text" id="token" name="token" autocomplete="off">' : ''}
+      <p class="actions"><button type="submit">Reset the demo data</button></p></form>`, { scripts: msg ? '<script>document.getElementById("msg").focus()</script>' : '' }));
+  }
   if (p === '/api/reset' && req.method === 'POST') {
     const token = process.env.RESET_TOKEN;
     if (token && url.searchParams.get('token') !== token) return json(res, 403, { error: 'bad token' });
