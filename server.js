@@ -61,7 +61,7 @@ function page(title, inner, { current = '', scripts = '', description = 'HireBud
 <button type="button" class="secondary" id="voice-command" aria-keyshortcuts="Alt+V" title="Alt+V, then say a button">Voice command</button>
 </div></header>
 <main id="main" tabindex="-1">${inner}</main>
-<footer><p>Built to work with screen readers (NVDA, JAWS, VoiceOver, TalkBack), with a keyboard alone, and at large text sizes. People and employers in this demo are fictional.</p></footer>
+<footer><p>Screen-reader and keyboard friendly. Demo people and employers are fictional.</p></footer>
 <script src="/common.js"></script>${scripts}
 </body></html>`;
 }

@@ -162,6 +162,8 @@ th { border-bottom: 3px solid var(--ink); }
 .mail { border: 2px solid var(--line); border-radius: var(--radius); padding: 1rem 1.25rem; margin: 1rem 0; }
 .mail h2 { margin: 0 0 .25rem; font-size: 1.25rem; }
 .notice { font-size: 1rem; color: var(--muted); }
+.examples-wrap, .recent { margin-top: 1.5rem; }
+.examples-wrap > summary, .recent > summary { font-size: 1.35rem; }
 .hero { padding-top: .5rem; }
 .hero h1 { font-size: 2.5rem; }
 @media (max-width: 600px) { .hero h1, h1 { font-size: 1.85rem; } }

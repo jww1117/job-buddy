@@ -2,23 +2,22 @@
 <div id="announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <section id="composer" class="hero" aria-labelledby="hero-title">
-  <h1 id="hero-title">Tell HireBuddy the work you want</h1>
-  <p class="lede">One sentence is enough: what you can do, where you live, when you are free and what you need. HireBuddy finds jobs that suit you, applies, books interviews and checks everything twice.</p>
-  <p>Made for blind and low-vision job seekers. It works with your screen reader, with a keyboard alone, and in WorkBuddy.</p>
+  <h1 id="hero-title">Find work that fits you</h1>
+  <p class="lede">Tell HireBuddy what you need in one sentence. It finds suitable jobs, applies and books interviews.</p>
 
   <form id="ask" novalidate>
     <fieldset>
-      <legend>Who are you?</legend>
+      <legend>I want to</legend>
       <div class="choices-row">
         <label class="radio"><input type="radio" name="persona" value="student" checked> I'm looking for work</label>
         <label class="radio"><input type="radio" name="persona" value="hirer"> I'm hiring</label>
       </div>
     </fieldset>
 
-    <label for="prompt">Your sentence</label>
-    <span class="hint" id="prompt-hint">For example: I'm blind and use NVDA, I live in Subang Jaya, I'm good on the phone, free weekdays 9 to 5.</span>
+    <label for="prompt">What work do you want?</label>
+    <span class="hint" id="prompt-hint">Include your skills, location, free time and access needs.</span>
     <textarea id="prompt" name="prompt" aria-describedby="prompt-hint prompt-error" spellcheck="true"></textarea>
-    <p id="prompt-error" class="panel bad" hidden></p>
+    <p id="prompt-error" class="panel bad" role="alert" hidden></p>
 
     <div class="actions">
       <button id="go" type="submit">Find me work</button>
@@ -26,8 +25,10 @@
       <button id="speak" type="button" class="secondary" hidden>Speak instead</button>
     </div>
 
-    <h2 id="examples-title">Or start from an example</h2>
-    <ul id="examples" class="examples" aria-labelledby="examples-title"></ul>
+    <details class="examples-wrap">
+      <summary id="examples-title">Use an example sentence</summary>
+      <ul id="examples" class="examples" aria-labelledby="examples-title"></ul>
+    </details>
   </form>
   <p class="notice" id="mode"></p>
 </section>
@@ -41,7 +42,7 @@
   <p id="handoff-status" role="status">Waiting for WorkBuddy to start.</p>
 </section>
 
-<section id="runview" aria-labelledby="run-title" hidden>
+<section id="runview" aria-labelledby="run-title" aria-busy="false" hidden>
   <h1 id="run-title" tabindex="-1">Working on it</h1>
   <p><span class="muted" id="rv-persona"></span></p>
   <blockquote class="panel" id="rv-prompt"></blockquote>
@@ -63,7 +64,7 @@
   <p class="actions"><a href="/" class="btn secondary">Start again</a></p>
 </section>
 
-<section id="recent" aria-labelledby="recent-title">
-  <h2 id="recent-title">Recent results</h2>
-  <ul id="runs" class="joblist"></ul>
-</section>
+<details id="recent" class="recent">
+  <summary id="recent-title">Recent results</summary>
+  <ul id="runs" class="joblist" aria-labelledby="recent-title"></ul>
+</details>
