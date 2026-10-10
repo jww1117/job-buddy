@@ -59,7 +59,7 @@ function page(title, inner, { current = '', scripts = '', description = 'HireBud
 <button type="button" class="secondary" data-size="normal" aria-label="Normal text">A</button><button type="button" class="secondary" data-size="large" aria-label="Large text">A+</button><button type="button" class="secondary" data-size="larger" aria-label="Largest text">A++</button></div>
 </div></header>
 <main id="main" tabindex="-1">${inner}</main>
-<footer><p>Built to work with screen readers (NVDA, JAWS, VoiceOver, TalkBack), with a keyboard alone, and at large text sizes. People and employers in this demo are fictional.</p></footer>
+<footer><p>Screen-reader and keyboard friendly. Demo people and employers are fictional.</p></footer>
 <script src="/common.js"></script>${scripts}
 </body></html>`;
 }

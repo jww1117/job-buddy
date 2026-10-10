@@ -92,6 +92,7 @@ function openRun(id, fresh) {
   $('#composer').hidden = true;
   $('#recent').hidden = true;
   $('#runview').hidden = false;
+  $('#runview').setAttribute('aria-busy', 'true');
   document.title = 'Working on it · HireBuddy';
   $('#run-title').focus();
   if (fresh) announce('Started. I will tell you each step as it happens.');
@@ -240,6 +241,7 @@ function showResult(e, live) {
   $('#run-title').textContent = ok ? 'Done' : 'Stopped';
   document.title = `${ok ? 'Done' : 'Stopped'} · HireBuddy`;
   const sec = $('#result');
+  $('#runview').setAttribute('aria-busy', 'false');
   sec.hidden = false;
   sec.className = `result panel ${ok && !refused ? 'good' : 'bad'}`;
   const lines = (e.summary || 'The agent stopped before finishing. Open the step-by-step list below.').split('\n');
